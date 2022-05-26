@@ -1,0 +1,36 @@
+// 別ファイルで定義
+struct EventParameters {
+    var keyA: String
+    var keyB: Int
+    var keyC: Bool
+    var keyD: String?
+    var keyE: Int?
+    var keyF: [String]?
+    // 30個以上あると想定
+}
+ 
+func sendEventNamedSample(parameter: EventParameters) {
+    let contentsMirror = Mirror(reflecting: parameter)
+    let parameterDic = contentsMirror.children.reduce(into: [String : Any]()) { result, child in
+        guard let lebal = child.0 else { return }
+        let value = unwrap(child.1)
+        return result[lebal] = value
+    }
+    // 共通の送信メソッド
+    manager.send("sample", parameterDic)
+}
+ 
+func unwrap(_ value: Any) -> Any? {
+    let mirror = Mirror(reflecting: value)
+    if mirror.displayStyle == .optional {
+        if let (_, childV) = mirror.children.first {
+            return childV
+        }
+        return nil
+    }
+    return value
+}
+ 
+// 使い方
+let parameter = EventParameters(keyA: "AStr", keyB: 2, keyC: true, keyF:["keyFValueA", "keyFValueb"])
+sendEventNamedSample(parameter: parameter)
